@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>鲁班--字节码增强工具</title>
+    <link rel="stylesheet" href="../../lib/layui-v2.6.3/css/layui.css" media="all">
+</head>
+<body>
+
+<!-- 你的 HTML 代码 -->
+<script src="lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
+<script src="lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script src="js/busness/common.js"></script>
+<script src="js/busness/login.js"></script>
+
+<div class="layui-row " style="height: 100%;width: 100%">
+
+    <div class="layui-col-md6">
+        <div class="layui-row" style="height: 200px;"></div>
+        <div class="layui-row">
+            <img src="../../images/luban.png" style="text-align: center;vertical-align: center;">
+        </div>
+        <div class="layui-row" style="height: 200px;"></div>
+    </div>
+
+    <div class="layui-col-md6" >
+        <div class="layui-row" style="height:300px;"></div>
+        <div class="layui-row">
+            <form class="layui-form" action="">
+                <div class="layui-form-item" >
+                    <label class="layui-form-label">用户名:</label>
+                    <div class="layui-input-block" style="width: 300px;">
+                        <input type="text" name="userName"  placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item" >
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-block" style="width: 300px;">
+                        <input type="password" name="password"  placeholder="请输入密码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item" >
+                    <label class="layui-form-label">验证码:</label>
+                    <div class="layui-input-inline">
+                        <input id="loginCard" class="layui-input" style="width: 250px;" type="text" name="loginCard" placeholder="输入验证码">
+                    </div>
+                    <div class="layui-input-inline">
+                        <input id="loginCode" name="loginCode" class="layui-input" style="width: 50px;"  type="button" onclick="createCode(this)">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label style="width: 160px;height: 30px;margin-left: 55px;cursor: pointer">没有账号？<a href="javascript:register();" id="loginRegister">点击注册</a></label>
+                    <input id="loginBtn" class="layui-btn" lay-submit lay-filter="login" type="button" style="width: 100px;height: 35px;margin-left: 100px;" value="登录"></input>
+                </div>
+
+            </form>
+        </div>
+
+
+    </div>
+</div>
+
+</body>
+
+<script >
+    layui.use(['jquery', 'form', 'layer', 'laydate', 'table','layedit','upload', 'element', 'carousel'],function () {
+        let domElement = document.getElementById("loginCode");
+        createCode(domElement);
+        let form = layui.form;
+        form.on('submit(login)',function(data) {
+            let requestObj = data.field;
+            let inputCode = requestObj.loginCard; // 输入的
+            var cardCode = $("#loginCode").val(); // 自动生成的
+            if (inputCode != cardCode){
+                layer.alert("请输入正确验证码");
+                return false;
+            }
+
+            asyncPost('/userInfo/login',JSON.stringify(requestObj),function (res) {
+                if(res.code === 0) {
+                    layer.msg("登录成功!",{
+                        icon:6,
+                        time:3000
+                    });
+                    window.localStorage.setItem("token",res.data);
+                    window.location.href = "/index";
+                } else {
+                    layer.msg("登录失败：" +res.msg,{
+                        icon:5,
+                        time:3000
+                    })
+                }
+            },function (res) {
+                layer.msg("登录失败!",{
+                    icon: 6,
+                    time:3000
+                })
+            })
+        });
+    });
+
+
+    function register() {
+        layer.open({
+            type:2,
+            title: "用户注册",
+            area:  ['800px', '600px'],
+            content: 'userInfoView.html',
+            anim:1,
+            closeBtn:2,
+            cancel:function (index,layero) {
+                console.info(index);
+                console.info(layero);
+            },
+        });
+    }
+
+</script>
+</html>

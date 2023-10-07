@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="css/public.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">appCode</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="appCode" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">配置名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="configName" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">状态</label>
+                            <div class="layui-input-inline">
+                                <select id="config-status" name="interest" lay-filter="aihao">
+                                    <option value="">状态</option>
+                                    <option value="0">启用</option>
+                                    <option value="1">不启用</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="layui-inline">
+                            <label class="layui-form-label">配置类型</label>
+                            <div class="layui-input-inline">
+                                <select id="config-type" name="type" lay-filter="aihao">
+                                    <option value="">选择配置类型</option>
+                                    <option value="JAVA_METHOD">java方法配置</option>
+                                    <option value="HTTP_METHOD">http请求配置</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="javaMethodSearch-container" style="display: none">
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">类名(模糊匹配)</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="className" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">方法名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="methodName" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="httpMethodSearch-container" style="display: none">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">主机地址</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="hostAddress" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">uri</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="uri" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>
+            </div>
+        </script>
+
+        <script type="text/html" id="configInfoBar">
+            <a class="layui-btn layui-btn-xs" lay-event="config-detail">查看</a>
+            <a class="layui-btn layui-btn-xs" lay-event="config-edit">编辑</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="config-del">删除</a>
+        </script>
+
+        <table class="layui-hide" id="contentPane" lay-filter="contentPaneFilter"></table>
+
+    </div>
+</div>
+<script src="lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
+<script src="lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="js/busness/common.js" charset="utf-8"></script>
+<script src="js/busness/configInfo.js" charset="utf-8"></script>
+
+<script>
+    layui.use(['form', 'table'], function () {
+
+        // configInfo();
+        let $ = layui.jquery;
+        let  form = layui.form;
+        let table = layui.table;
+
+        // 搜索框选择器下拉触发
+        form.on("select", function(data){
+            if (data.elem.id === 'config-type') {
+                if (data.value === 'JAVA_METHOD') {
+                    $('#javaMethodSearch-container').show();
+                    $('#httpMethodSearch-container').hide();
+                } else if (data.value === 'HTTP_METHOD') {
+                    $('#javaMethodSearch-container').hide();
+                    $('#httpMethodSearch-container').show();
+                } else {
+                    $('#javaMethodSearch-container').hide();
+                    $('#httpMethodSearch-container').hide();
+                }
+            }
+        });
+
+        configInfo(table);
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            var result = JSON.stringify(data.field);
+            //执行搜索重载
+            table.reload('contentPane', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(contentPaneFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                let index = layer.open({
+                    title: '添加配置',
+                    type:2,
+                    area: ['100%', '100%'],
+                    content: 'configView.html',
+                    anim:1,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = configView.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+                layer.alert(JSON.stringify(data));
+            }
+        });
+
+        table.on('tool(contentPaneFilter)', function (obj) {
+            var data = obj.data;
+            if(obj.event === 'config-detail') {
+                detailOrEdit(data);
+            }
+            if (obj.event === 'config-edit') {
+                detailOrEdit(data, 1);
+            } else if (obj.event === 'config-del') {
+                layer.confirm('真的删除行么', function (index) {
+                    let type = data.constant === 'JAVA_METHOD' ? "java" : "http";
+                    deleteConfig(data.id, type, index);
+                });
+            }
+        });
+
+    });
+
+</script>
+
+</body>
+</html>
